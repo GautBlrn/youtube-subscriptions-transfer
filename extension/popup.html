@@ -30,22 +30,10 @@
       }
       button.secondary { background: #f2f2f2; color: #0f0f0f; }
       button:disabled { opacity: .55; cursor: default; }
-      input[type="file"] { width: 100%; margin-bottom: 8px; font-size: 12px; }
       .status { margin-top: 10px; min-height: 16px; line-height: 1.4; }
       .muted { color: #606060; }
       .err { color: #c00; }
       .ok { color: #087443; font-weight: 600; }
-      .warn {
-        background: #fff4e5;
-        border: 1px solid #ffd8a8;
-        border-radius: 6px;
-        padding: 8px 10px;
-        color: #8a5a00;
-        line-height: 1.4;
-        margin-bottom: 10px;
-      }
-      code { background: #f2f2f2; padding: 1px 4px; border-radius: 4px; }
-      a.reset { display: inline-block; margin-top: 8px; font-size: 12px; color: #606060; }
     </style>
   </head>
   <body>
@@ -64,19 +52,13 @@
 
       <section>
         <h2>2. Import (destination account)</h2>
-        <div class="warn">
-          Automated subscribing is against YouTube's Terms of Service. Use on your
-          own accounts, at a gentle pace. You do this at your own risk.
-        </div>
         <p class="sub">
-          Log in with the account to copy <em>to</em>, pick the CSV, then start.
+          Importing opens in a full tab (a file picker would close this popup).
         </p>
-        <input type="file" id="csvFile" accept=".csv" />
-        <button id="import">Import from CSV</button>
-        <div id="importStatus" class="status muted"></div>
-        <a href="#" id="resetProgress" class="reset">Reset import progress</a>
+        <button id="openImport" class="secondary">Open import page</button>
       </section>
     </div>
+    <script src="common.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

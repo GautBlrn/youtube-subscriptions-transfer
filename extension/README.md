@@ -53,7 +53,9 @@ YouTube Data API), which is capped by the API's ~200 subscriptions/day quota.
 1. **Export:** log in with the source account, click the icon, then
    *Export my subscriptions*.
 2. **Import:** log in with the destination account (same browser, switch account
-   or profile), click the icon, pick the CSV, then *Import from CSV*.
+   or profile), open a `youtube.com` tab, click the icon, then *Open import
+   page*. Import runs in its own tab (a file picker would close the popup on
+   Linux), so pick the CSV there and click *Start import*.
 
 ## Notes
 
