@@ -166,7 +166,10 @@ async function subscribeOne(channelId, authHeader, cfg) {
     const confirmed = /"subscribed"\s*:\s*true/.test(text);
     return { ok: confirmed, confirmed, status: resp.status, body };
   } catch (e) {
-    return { ok: false, status: 0, reason: String((e && e.message) || e) };
+    // A content/ad blocker (uBlock, etc.) makes fetch reject before it leaves.
+    const msg = String((e && e.message) || e);
+    const blocked = /Failed to fetch|ERR_BLOCKED|NetworkError/i.test(msg);
+    return { ok: false, status: 0, blocked, reason: msg };
   }
 }
 

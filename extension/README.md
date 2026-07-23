@@ -59,6 +59,9 @@ YouTube Data API), which is capped by the API's ~200 subscriptions/day quota.
 
 ## Notes
 
+- **Content/ad blockers (uBlock Origin, etc.) can block the subscribe requests.**
+  If the import reports that requests are blocked, disable your blocker on
+  `youtube.com` for the duration of the import, then retry.
 - The import subscribes at ~3 channels/second. For very large lists, YouTube may
   temporarily rate-limit; if subscribes start failing, wait and re-run (progress
   resumes).

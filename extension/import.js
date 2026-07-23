@@ -75,7 +75,13 @@ async function runImport() {
         try { authHeader = await buildAuthHeader(); } catch (e) {}
         res = await subscribe(tab.id, id, authHeader, cfg);
       }
-      console.log("[import]", id, res);
+
+      if (res && res.blocked) {
+        setStatus(statusEl,
+          "Requests are being blocked, likely by a content/ad blocker (uBlock, etc.). " +
+          "Disable it on youtube.com and retry.", "err");
+        return;
+      }
 
       if (res && res.ok) {
         ok++; done.add(id); await saveDone(done);
