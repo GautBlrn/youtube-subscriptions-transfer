@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube Subscriptions Transfer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Export your YouTube subscriptions to CSV and import them into another account. Uses your own session, no server.",
   "permissions": ["scripting", "downloads", "activeTab", "tabs", "cookies", "storage"],
   "host_permissions": ["https://www.youtube.com/*", "https://*.google.com/*"],

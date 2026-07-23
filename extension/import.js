@@ -22,6 +22,24 @@ async function runInTab(tabId, func, args) {
   return result;
 }
 
+const FEED = "https://www.youtube.com/feed/channels";
+
+async function goToFeedChannels(tab) {
+  if (tab.url && tab.url.split("?")[0].startsWith(FEED)) return tab;
+  await chrome.tabs.update(tab.id, { url: FEED });
+  await new Promise((resolve) => {
+    const listener = (id, info) => {
+      if (id === tab.id && info.status === "complete") {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve();
+      }
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+  await new Promise((r) => setTimeout(r, 1200));
+  return await chrome.tabs.get(tab.id);
+}
+
 function setProgress(current, total) {
   const pct = total ? Math.round((current / total) * 100) : 0;
   barEl.style.width = pct + "%";
@@ -37,7 +55,7 @@ async function runImport() {
     const ids = channelIdsFromCsv(await readFile(file));
     if (!ids.length) { setStatus(statusEl, "No channel IDs found in that CSV.", "err"); return; }
 
-    const tab = await findYouTubeTab();
+    let tab = await findYouTubeTab();
     if (!tab) {
       setStatus(statusEl, "Open youtube.com in another tab (logged in with the destination account), then retry.", "err");
       return;
@@ -58,7 +76,16 @@ async function runImport() {
     catch (e) { setStatus(statusEl, "Could not read your Google session. Are you logged in?", "err"); return; }
 
     setStatus(statusEl, "Checking which channels you already follow…");
-    const existing = new Set(await runInTab(tab.id, fetchSubscribedIds));
+    // Reuse the proven export mechanism: read the destination account's current
+    // subscriptions from its own feed/channels page.
+    let existing = new Set();
+    try {
+      tab = await goToFeedChannels(tab);
+      const subs = await runInTab(tab.id, collectSubscriptions);
+      existing = new Set((subs || []).map((s) => s.id));
+    } catch (e) {
+      console.warn("[import] could not read existing subscriptions", e);
+    }
 
     const done = await loadDone();
     const pending = ids.filter((id) => !done.has(id));
