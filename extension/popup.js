@@ -22,7 +22,9 @@ async function waitForComplete(tabId) {
 }
 
 async function ensureTab(tab, targetUrl) {
-  if (isYouTube(tab.url)) return tab;
+  // Must be on the exact target page (feed/channels), not just any YouTube page:
+  // the subscription list only lives in that page's initial data.
+  if (tab.url && tab.url.split("?")[0].startsWith(targetUrl)) return tab;
   await chrome.tabs.update(tab.id, { url: targetUrl });
   await waitForComplete(tab.id);
   await new Promise((r) => setTimeout(r, 1200));
