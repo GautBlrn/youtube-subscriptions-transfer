@@ -11,10 +11,10 @@ async function findYouTubeTab() {
   return tabs[0];
 }
 
-async function subscribe(tabId, id, authHeader, apiKey, clientVersion) {
+async function subscribe(tabId, id, authHeader, cfg) {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId }, func: subscribeOne,
-    args: [id, authHeader, apiKey, clientVersion],
+    args: [id, authHeader, cfg],
   });
   return result;
 }
@@ -41,6 +41,16 @@ async function runImport() {
       setStatus(statusEl, "YouTube config not found. Reload the youtube.com tab and retry.", "err");
       return;
     }
+    console.log("[import] youtube tab config:", {
+      sessionIndex: cfg.sessionIndex,
+      delegatedSessionId: cfg.delegatedSessionId,
+      loggedIn: cfg.loggedIn,
+      clientVersion: cfg.clientVersion,
+    });
+    if (!cfg.loggedIn) {
+      setStatus(statusEl, "The youtube.com tab is not logged in. Log in with the destination account and retry.", "err");
+      return;
+    }
 
     let authHeader;
     try { authHeader = await buildAuthHeader(); }
@@ -51,34 +61,33 @@ async function runImport() {
     const total = pending.length;
     if (!total) { setStatus(statusEl, `All ${ids.length} channels already imported.`, "ok"); return; }
 
-    let ok = 0, skipped = 0, failed = 0;
+    let ok = 0, failed = 0;
     for (let i = 0; i < pending.length; i++) {
       const id = pending[i];
-      setStatus(statusEl, `Subscribing ${i + 1}/${total}…  (${ok} done, ${skipped} skipped, ${failed} failed)`);
+      setStatus(statusEl, `Subscribing ${i + 1}/${total}…  (${ok} done, ${failed} failed)`);
 
       if (i > 0 && i % 100 === 0) {
         try { authHeader = await buildAuthHeader(); } catch (e) {}
       }
 
-      let res = await subscribe(tab.id, id, authHeader, cfg.apiKey, cfg.clientVersion);
+      let res = await subscribe(tab.id, id, authHeader, cfg);
       if (res && res.auth) {
         try { authHeader = await buildAuthHeader(); } catch (e) {}
-        res = await subscribe(tab.id, id, authHeader, cfg.apiKey, cfg.clientVersion);
+        res = await subscribe(tab.id, id, authHeader, cfg);
       }
+      console.log("[import]", id, res);
 
       if (res && res.ok) {
         ok++; done.add(id); await saveDone(done);
-      } else if (res && /already|duplicate/i.test(res.reason || "")) {
-        skipped++; done.add(id); await saveDone(done);
       } else {
         failed++;
-        console.warn("subscribe failed", id, res);
+        console.warn("[import] subscribe failed", id, res);
       }
       await new Promise((r) => setTimeout(r, SUBSCRIBE_DELAY_MS));
     }
 
     setStatus(statusEl,
-      `Done. ${ok} subscribed, ${skipped} already there, ${failed} failed` +
+      `Done. ${ok} subscribed, ${failed} failed` +
       (failed ? " (see the console for details)." : "."),
       failed ? "err" : "ok");
   } catch (err) {

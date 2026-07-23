@@ -23,12 +23,18 @@ function isYouTube(url) {
 
 function getYtConfig() {
   const html = document.documentElement.innerHTML;
-  const apiKey = (html.match(/"INNERTUBE_API_KEY":"([^"]+)"/) || [])[1] || null;
-  const clientVersion =
-    (html.match(/"INNERTUBE_CLIENT_VERSION":"([^"]+)"/) || [])[1] ||
-    (html.match(/"clientVersion":"([^"]+)"/) || [])[1] ||
-    null;
-  return { apiKey, clientVersion };
+  const pick = (re) => (html.match(re) || [])[1] || null;
+  return {
+    apiKey: pick(/"INNERTUBE_API_KEY":"([^"]+)"/),
+    clientVersion:
+      pick(/"INNERTUBE_CLIENT_VERSION":"([^"]+)"/) ||
+      pick(/"clientVersion":"([^"]+)"/),
+    // Which signed-in account this tab is showing (0 = first account).
+    sessionIndex: pick(/"SESSION_INDEX":"?(\d+)"?/) || "0",
+    // Set for brand / delegated accounts; used as X-Goog-PageId.
+    delegatedSessionId: pick(/"DELEGATED_SESSION_ID":"([^"]+)"/),
+    loggedIn: /"LOGGED_IN":\s*true/.test(html),
+  };
 }
 
 async function collectSubscriptions() {
@@ -120,35 +126,45 @@ async function collectSubscriptions() {
   return [...out.entries()].map(([id, title]) => ({ id, title }));
 }
 
-async function subscribeOne(channelId, authHeader, apiKey, clientVersion) {
+async function subscribeOne(channelId, authHeader, cfg) {
   try {
     const url =
       "https://www.youtube.com/youtubei/v1/subscription/subscribe?key=" +
-      encodeURIComponent(apiKey) + "&prettyPrint=false";
+      encodeURIComponent(cfg.apiKey) + "&prettyPrint=false";
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+      "X-Origin": "https://www.youtube.com",
+      "X-Goog-AuthUser": String(cfg.sessionIndex || "0"),
+    };
+    if (cfg.delegatedSessionId) headers["X-Goog-PageId"] = cfg.delegatedSessionId;
+
     const resp = await fetch(url, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-        "X-Origin": "https://www.youtube.com",
-        "X-Goog-AuthUser": "0",
-      },
+      headers,
       body: JSON.stringify({
-        context: { client: { clientName: "WEB", clientVersion } },
+        context: { client: { clientName: "WEB", clientVersion: cfg.clientVersion } },
         channelIds: [channelId],
         params: "EgIIAhgB",
       }),
     });
     const text = await resp.text();
+    const body = text.slice(0, 600);
+
     if (resp.status === 401 || resp.status === 403) {
-      return { ok: false, auth: true, status: resp.status, reason: text.slice(0, 160) };
+      return { ok: false, auth: true, status: resp.status, reason: body };
     }
-    if (!resp.ok) return { ok: false, status: resp.status, reason: text.slice(0, 160) };
+    if (!resp.ok) return { ok: false, status: resp.status, reason: body };
+
     let data = null;
     try { data = JSON.parse(text); } catch (e) {}
-    if (data && data.error) return { ok: false, status: data.error.code, reason: data.error.message };
-    return { ok: true };
+    if (data && data.error) {
+      return { ok: false, status: data.error.code, reason: data.error.message, body };
+    }
+    // Real confirmation: YouTube echoes the new subscribe-button state.
+    const confirmed = /"subscribed"\s*:\s*true/.test(text);
+    return { ok: confirmed, confirmed, status: resp.status, body };
   } catch (e) {
     return { ok: false, status: 0, reason: String((e && e.message) || e) };
   }
