@@ -126,6 +126,66 @@ async function collectSubscriptions() {
   return [...out.entries()].map(([id, title]) => ({ id, title }));
 }
 
+// Fetch the channel IDs the logged-in account is already subscribed to, by
+// querying the "Channels" feed (FEchannels) via the internal browse endpoint.
+// Degrades to [] on any failure, so the import just tries to subscribe to all.
+async function fetchSubscribedIds() {
+  const html = document.documentElement.innerHTML;
+  const apiKey = (html.match(/"INNERTUBE_API_KEY":"([^"]+)"/) || [])[1];
+  const clientVersion =
+    (html.match(/"INNERTUBE_CLIENT_VERSION":"([^"]+)"/) || [])[1] ||
+    (html.match(/"clientVersion":"([^"]+)"/) || [])[1];
+  if (!apiKey || !clientVersion) return [];
+
+  const UCRE = /^UC[0-9A-Za-z_-]{22}$/;
+  const out = new Set();
+  const contRef = { token: null };
+
+  function harvest(node) {
+    if (Array.isArray(node)) { for (const n of node) harvest(n); return; }
+    if (!node || typeof node !== "object") return;
+    if (typeof node.channelId === "string" && UCRE.test(node.channelId)) out.add(node.channelId);
+    const t =
+      node.continuationItemRenderer &&
+      node.continuationItemRenderer.continuationEndpoint &&
+      node.continuationItemRenderer.continuationEndpoint.continuationCommand &&
+      node.continuationItemRenderer.continuationEndpoint.continuationCommand.token;
+    if (t) contRef.token = t;
+    for (const k of Object.keys(node)) harvest(node[k]);
+  }
+
+  const context = { client: { clientName: "WEB", clientVersion } };
+  const endpoint =
+    "https://www.youtube.com/youtubei/v1/browse?key=" +
+    encodeURIComponent(apiKey) + "&prettyPrint=false";
+
+  try {
+    let resp = await fetch(endpoint, {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ context, browseId: "FEchannels" }),
+    });
+    if (!resp.ok) return [];
+    harvest(await resp.json());
+    let guard = 0;
+    while (contRef.token && guard < 300) {
+      guard++;
+      const token = contRef.token;
+      contRef.token = null;
+      resp = await fetch(endpoint, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context, continuation: token }),
+      });
+      if (!resp.ok) break;
+      harvest(await resp.json());
+    }
+  } catch (e) {
+    return [...out];
+  }
+  return [...out];
+}
+
 async function subscribeOne(channelId, authHeader, cfg) {
   try {
     const url =

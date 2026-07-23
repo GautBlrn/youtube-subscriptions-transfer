@@ -2,62 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles.css" />
     <style>
-      body {
-        width: 340px;
-        margin: 0;
-        font-family: system-ui, sans-serif;
-        font-size: 13px;
-        color: #0f0f0f;
-        background: #fff;
-      }
-      .wrap { padding: 16px; }
-      h1 { font-size: 15px; margin: 0 0 10px; }
-      h2 { font-size: 13px; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .04em; color: #606060; }
-      p.sub { margin: 0 0 10px; color: #606060; line-height: 1.4; }
-      section { padding: 12px 0; border-top: 1px solid #eee; }
-      section:first-of-type { border-top: 0; }
-      button {
-        width: 100%;
-        padding: 10px;
-        border: 0;
-        border-radius: 8px;
-        background: #065fd4;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      button.secondary { background: #f2f2f2; color: #0f0f0f; }
-      button:disabled { opacity: .55; cursor: default; }
-      .status { margin-top: 10px; min-height: 16px; line-height: 1.4; }
-      .muted { color: #606060; }
-      .err { color: #c00; }
-      .ok { color: #087443; font-weight: 600; }
+      body { width: 340px; }
+      .body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <h1>YouTube Subscriptions Transfer</h1>
+    <div class="header">
+      <span class="logo">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.3 3.2v5.6L10.8 6 6.3 3.2Z" fill="#fff"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Subscriptions Transfer</h1>
+        <p>Move your subs between accounts</p>
+      </div>
+    </div>
 
-      <section>
-        <h2>1. Export (source account)</h2>
+    <div class="body">
+      <div class="card">
+        <h2><span class="step-num">1</span>Export (source account)</h2>
         <p class="sub">
-          Log in with the account to copy <em>from</em>, then export its
-          subscriptions to a CSV.
+          Logged in with the account to copy <em>from</em>? Download its
+          subscriptions as a CSV.
         </p>
         <button id="export">Export my subscriptions</button>
-        <div id="exportStatus" class="status muted"></div>
-      </section>
+        <div id="exportStatus" class="status"></div>
+      </div>
 
-      <section>
-        <h2>2. Import (destination account)</h2>
+      <div class="card">
+        <h2><span class="step-num">2</span>Import (destination account)</h2>
         <p class="sub">
-          Importing opens in a full tab (a file picker would close this popup).
+          Opens in a full tab, so a file picker won't close this popup.
         </p>
         <button id="openImport" class="secondary">Open import page</button>
-      </section>
+      </div>
     </div>
+
     <script src="common.js"></script>
     <script src="popup.js"></script>
   </body>

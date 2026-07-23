@@ -3,70 +3,78 @@
   <head>
     <meta charset="utf-8" />
     <title>Import subscriptions</title>
+    <link rel="stylesheet" href="styles.css" />
     <style>
-      body {
-        margin: 0;
-        font-family: system-ui, sans-serif;
-        font-size: 14px;
-        color: #0f0f0f;
-        background: #fafafa;
+      .page { max-width: 580px; margin: 32px auto; padding: 0 20px; }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
       }
-      .wrap { max-width: 560px; margin: 40px auto; padding: 28px; background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-      h1 { font-size: 20px; margin: 0 0 6px; }
-      p.sub { margin: 0 0 18px; color: #606060; line-height: 1.5; }
-      .warn {
-        background: #fff4e5;
-        border: 1px solid #ffd8a8;
-        border-radius: 8px;
-        padding: 12px 14px;
-        color: #8a5a00;
-        line-height: 1.5;
-        margin-bottom: 18px;
-      }
-      ol { margin: 0 0 18px; padding-left: 20px; line-height: 1.6; color: #333; }
-      input[type="file"] { display: block; width: 100%; margin: 6px 0 16px; font-size: 13px; }
-      button {
-        padding: 11px 18px;
-        border: 0;
-        border-radius: 8px;
-        background: #065fd4;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      button:disabled { opacity: .55; cursor: default; }
-      #status { margin-top: 16px; min-height: 20px; line-height: 1.5; font-size: 15px; }
-      .muted { color: #606060; }
-      .err { color: #c00; }
-      .ok { color: #087443; font-weight: 600; }
-      a.reset { display: inline-block; margin-left: 14px; font-size: 13px; color: #606060; }
-      code { background: #f2f2f2; padding: 1px 5px; border-radius: 4px; }
+      .panel .header { border-radius: 0; }
+      .panel .body { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+      ol.steps { margin: 0; padding-left: 22px; line-height: 1.7; color: var(--text); font-size: 13.5px; }
+      .run { display: flex; align-items: center; gap: 14px; }
+      .run button { width: auto; padding: 12px 22px; }
+      .run a { font-size: 13px; color: var(--muted); text-decoration: none; }
+      .run a:hover { text-decoration: underline; }
+      .progress-wrap { display: none; flex-direction: column; gap: 12px; }
+      .progress-wrap.show { display: flex; }
+      .pct { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <h1>Import subscriptions</h1>
-      <p class="sub">Subscribe a destination account to every channel in a CSV.</p>
+    <div class="page">
+      <div class="panel">
+        <div class="header">
+          <span class="logo">
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.3 3.2v5.6L10.8 6 6.3 3.2Z" fill="#fff"/>
+            </svg>
+          </span>
+          <div>
+            <h1>Import subscriptions</h1>
+            <p>Subscribe a destination account to every channel in a CSV</p>
+          </div>
+        </div>
 
-      <div class="warn">
-        Automated subscribing is against YouTube's Terms of Service. Use on your
-        own accounts, at a gentle pace. You do this at your own risk.
+        <div class="body">
+          <div class="warn">
+            Automated subscribing is against YouTube's Terms of Service. Use on
+            your own accounts, at a gentle pace. You do this at your own risk.
+          </div>
+
+          <ol class="steps">
+            <li>Open <code>youtube.com</code> in another tab, logged in with the
+              <strong>destination</strong> account.</li>
+            <li>Pick your <code>subscriptions.csv</code> below.</li>
+            <li>Click <strong>Start import</strong> and keep this tab open.</li>
+          </ol>
+
+          <input type="file" id="csvFile" accept=".csv" />
+
+          <div class="run">
+            <button id="start">Start import</button>
+            <a href="#" id="reset">Reset progress</a>
+          </div>
+
+          <div id="progressWrap" class="progress-wrap">
+            <div class="progress"><div id="bar" class="bar"></div></div>
+            <div class="pct" id="pct"></div>
+            <div class="chips">
+              <span class="chip ok"><b id="cSub">0</b> subscribed</span>
+              <span class="chip warn-chip"><b id="cAlready">0</b> already there</span>
+              <span class="chip err"><b id="cFailed">0</b> failed</span>
+            </div>
+          </div>
+
+          <div id="status" class="status"></div>
+        </div>
       </div>
-
-      <ol>
-        <li>Open <code>youtube.com</code> in another tab, logged in with the
-          <strong>destination</strong> account.</li>
-        <li>Pick your <code>subscriptions.csv</code> below.</li>
-        <li>Click <strong>Start import</strong> and keep this tab open.</li>
-      </ol>
-
-      <input type="file" id="csvFile" accept=".csv" />
-      <button id="start">Start import</button>
-      <a href="#" id="reset" class="reset">Reset progress</a>
-
-      <div id="status" class="status muted"></div>
     </div>
+
     <script src="common.js"></script>
     <script src="import.js"></script>
   </body>

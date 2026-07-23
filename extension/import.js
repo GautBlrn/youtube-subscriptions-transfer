@@ -3,6 +3,12 @@
 const csvInput = document.getElementById("csvFile");
 const startBtn = document.getElementById("start");
 const statusEl = document.getElementById("status");
+const progressWrap = document.getElementById("progressWrap");
+const barEl = document.getElementById("bar");
+const pctEl = document.getElementById("pct");
+const cSub = document.getElementById("cSub");
+const cAlready = document.getElementById("cAlready");
+const cFailed = document.getElementById("cFailed");
 
 async function findYouTubeTab() {
   const tabs = await chrome.tabs.query({ url: "https://www.youtube.com/*" });
@@ -11,12 +17,15 @@ async function findYouTubeTab() {
   return tabs[0];
 }
 
-async function subscribe(tabId, id, authHeader, cfg) {
-  const [{ result }] = await chrome.scripting.executeScript({
-    target: { tabId }, func: subscribeOne,
-    args: [id, authHeader, cfg],
-  });
+async function runInTab(tabId, func, args) {
+  const [{ result }] = await chrome.scripting.executeScript({ target: { tabId }, func, args });
   return result;
+}
+
+function setProgress(current, total) {
+  const pct = total ? Math.round((current / total) * 100) : 0;
+  barEl.style.width = pct + "%";
+  pctEl.textContent = `${current} / ${total} (${pct}%)`;
 }
 
 async function runImport() {
@@ -34,19 +43,11 @@ async function runImport() {
       return;
     }
 
-    const [{ result: cfg }] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id }, func: getYtConfig,
-    });
+    const cfg = await runInTab(tab.id, getYtConfig);
     if (!cfg || !cfg.apiKey || !cfg.clientVersion) {
       setStatus(statusEl, "YouTube config not found. Reload the youtube.com tab and retry.", "err");
       return;
     }
-    console.log("[import] youtube tab config:", {
-      sessionIndex: cfg.sessionIndex,
-      delegatedSessionId: cfg.delegatedSessionId,
-      loggedIn: cfg.loggedIn,
-      clientVersion: cfg.clientVersion,
-    });
     if (!cfg.loggedIn) {
       setStatus(statusEl, "The youtube.com tab is not logged in. Log in with the destination account and retry.", "err");
       return;
@@ -56,24 +57,36 @@ async function runImport() {
     try { authHeader = await buildAuthHeader(); }
     catch (e) { setStatus(statusEl, "Could not read your Google session. Are you logged in?", "err"); return; }
 
+    setStatus(statusEl, "Checking which channels you already follow…");
+    const existing = new Set(await runInTab(tab.id, fetchSubscribedIds));
+
     const done = await loadDone();
     const pending = ids.filter((id) => !done.has(id));
     const total = pending.length;
-    if (!total) { setStatus(statusEl, `All ${ids.length} channels already imported.`, "ok"); return; }
+    if (!total) { setStatus(statusEl, `All ${ids.length} channels already handled.`, "ok"); return; }
 
-    let ok = 0, failed = 0;
+    progressWrap.classList.add("show");
+    let ok = 0, already = 0, failed = 0;
+    const render = () => { cSub.textContent = ok; cAlready.textContent = already; cFailed.textContent = failed; };
+
     for (let i = 0; i < pending.length; i++) {
       const id = pending[i];
-      setStatus(statusEl, `Subscribing ${i + 1}/${total}…  (${ok} done, ${failed} failed)`);
+      setProgress(i, total);
+      setStatus(statusEl, `Working… ${i + 1} of ${total}`);
+
+      if (existing.has(id)) {
+        already++; done.add(id); await saveDone(done); render();
+        continue;
+      }
 
       if (i > 0 && i % 100 === 0) {
         try { authHeader = await buildAuthHeader(); } catch (e) {}
       }
 
-      let res = await subscribe(tab.id, id, authHeader, cfg);
+      let res = await runInTab(tab.id, subscribeOne, [id, authHeader, cfg]);
       if (res && res.auth) {
         try { authHeader = await buildAuthHeader(); } catch (e) {}
-        res = await subscribe(tab.id, id, authHeader, cfg);
+        res = await runInTab(tab.id, subscribeOne, [id, authHeader, cfg]);
       }
 
       if (res && res.blocked) {
@@ -82,18 +95,19 @@ async function runImport() {
           "Disable it on youtube.com and retry.", "err");
         return;
       }
-
       if (res && res.ok) {
         ok++; done.add(id); await saveDone(done);
       } else {
         failed++;
         console.warn("[import] subscribe failed", id, res);
       }
+      render();
       await new Promise((r) => setTimeout(r, SUBSCRIBE_DELAY_MS));
     }
 
+    setProgress(total, total);
     setStatus(statusEl,
-      `Done. ${ok} subscribed, ${failed} failed` +
+      `Done. ${ok} subscribed, ${already} already there, ${failed} failed` +
       (failed ? " (see the console for details)." : "."),
       failed ? "err" : "ok");
   } catch (err) {
@@ -107,5 +121,6 @@ startBtn.addEventListener("click", runImport);
 document.getElementById("reset").addEventListener("click", async (e) => {
   e.preventDefault();
   await chrome.storage.local.remove(DONE_KEY);
-  setStatus(statusEl, "Import progress reset.", "muted");
+  progressWrap.classList.remove("show");
+  setStatus(statusEl, "Import progress reset.", "");
 });
