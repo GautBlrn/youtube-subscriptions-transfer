@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <style>
       body {
-        width: 320px;
+        width: 340px;
         margin: 0;
         font-family: system-ui, sans-serif;
         font-size: 13px;
@@ -12,8 +12,11 @@
         background: #fff;
       }
       .wrap { padding: 16px; }
-      h1 { font-size: 15px; margin: 0 0 4px; }
-      p.sub { margin: 0 0 14px; color: #606060; line-height: 1.4; }
+      h1 { font-size: 15px; margin: 0 0 10px; }
+      h2 { font-size: 13px; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .04em; color: #606060; }
+      p.sub { margin: 0 0 10px; color: #606060; line-height: 1.4; }
+      section { padding: 12px 0; border-top: 1px solid #eee; }
+      section:first-of-type { border-top: 0; }
       button {
         width: 100%;
         padding: 10px;
@@ -25,24 +28,54 @@
         font-weight: 600;
         cursor: pointer;
       }
-      button:disabled { background: #aac6ef; cursor: default; }
-      #status { margin-top: 12px; min-height: 18px; line-height: 1.4; }
+      button.secondary { background: #f2f2f2; color: #0f0f0f; }
+      button:disabled { opacity: .55; cursor: default; }
+      input[type="file"] { width: 100%; margin-bottom: 8px; font-size: 12px; }
+      .status { margin-top: 10px; min-height: 16px; line-height: 1.4; }
       .muted { color: #606060; }
       .err { color: #c00; }
       .ok { color: #087443; font-weight: 600; }
+      .warn {
+        background: #fff4e5;
+        border: 1px solid #ffd8a8;
+        border-radius: 6px;
+        padding: 8px 10px;
+        color: #8a5a00;
+        line-height: 1.4;
+        margin-bottom: 10px;
+      }
       code { background: #f2f2f2; padding: 1px 4px; border-radius: 4px; }
+      a.reset { display: inline-block; margin-top: 8px; font-size: 12px; color: #606060; }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <h1>Export subscriptions</h1>
-      <p class="sub">
-        Log in with the account whose subscriptions you want to export, then click
-        below. A <code>subscriptions.csv</code> is downloaded, ready for the
-        transfer script.
-      </p>
-      <button id="run">Export my subscriptions</button>
-      <div id="status" class="muted"></div>
+      <h1>YouTube Subscriptions Transfer</h1>
+
+      <section>
+        <h2>1. Export (source account)</h2>
+        <p class="sub">
+          Log in with the account to copy <em>from</em>, then export its
+          subscriptions to a CSV.
+        </p>
+        <button id="export">Export my subscriptions</button>
+        <div id="exportStatus" class="status muted"></div>
+      </section>
+
+      <section>
+        <h2>2. Import (destination account)</h2>
+        <div class="warn">
+          Automated subscribing is against YouTube's Terms of Service. Use on your
+          own accounts, at a gentle pace. You do this at your own risk.
+        </div>
+        <p class="sub">
+          Log in with the account to copy <em>to</em>, pick the CSV, then start.
+        </p>
+        <input type="file" id="csvFile" accept=".csv" />
+        <button id="import">Import from CSV</button>
+        <div id="importStatus" class="status muted"></div>
+        <a href="#" id="resetProgress" class="reset">Reset import progress</a>
+      </section>
     </div>
     <script src="popup.js"></script>
   </body>

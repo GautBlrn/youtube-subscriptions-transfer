@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Subscriptions Exporter",
-  "version": "1.0.0",
-  "description": "Export your YouTube subscriptions to a Takeout-compatible CSV, ready for youtube-subscriptions-transfer. Read-only, your own data.",
-  "permissions": ["scripting", "downloads", "activeTab", "tabs"],
-  "host_permissions": ["https://www.youtube.com/*"],
+  "name": "YouTube Subscriptions Transfer",
+  "version": "2.0.0",
+  "description": "Export your YouTube subscriptions to CSV and import them into another account. Uses your own session, no server.",
+  "permissions": ["scripting", "downloads", "activeTab", "tabs", "cookies", "storage"],
+  "host_permissions": ["https://www.youtube.com/*", "https://*.google.com/*"],
   "action": {
-    "default_title": "Export YouTube subscriptions",
+    "default_title": "YouTube Subscriptions Transfer",
     "default_popup": "popup.html"
   }
 }

@@ -15,6 +15,20 @@ to re-subscribe by hand, which is painful past a handful of channels. This tool
 does it through the supported API, is **resumable**, and respects the daily API
 quota.
 
+## Two ways to transfer
+
+- **All in the browser (fastest, ToS-gray).** The bundled
+  [extension](extension/README.md) both exports *and* imports, driving your own
+  logged-in sessions. Automated subscribing is against YouTube's Terms of
+  Service, so it is load-unpacked only, for your own accounts, at your own risk.
+- **Official API (ToS-clean, this script).** Export with the extension or
+  Takeout, then run the Python script below to subscribe through the official
+  YouTube Data API. Slower (capped at ~200 subscriptions/day by quota) but fully
+  within the rules.
+
+The rest of this README covers the script. For the extension, see
+[`extension/README.md`](extension/README.md).
+
 ## How it works
 
 - Reads channel IDs from a Google Takeout `subscriptions.csv`.
