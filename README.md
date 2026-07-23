@@ -83,13 +83,6 @@ If you hit the daily quota, just run the same command again the next day.
 | `--delay` | `0.5` | Seconds between API calls. |
 | `--max-per-run` | *(none)* | Cap subscriptions per run (e.g. to stay under quota). |
 
-## Security notes
-
-- `client_secret.json` and `token.json` grant write access to a YouTube account.
-  They are git-ignored on purpose. **Never commit or share them.**
-- Your own `subscriptions.csv` and `processed_channels.txt` are git-ignored too
-  (they are personal data). Only `subscriptions.sample.csv` is tracked.
-
 ## License
 
 [MIT](LICENSE)
