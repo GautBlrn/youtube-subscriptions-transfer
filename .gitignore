@@ -1,0 +1,21 @@
+# OAuth secrets — NEVER commit these
+client_secret.json
+token.json
+*.token.json
+
+# Personal data (your own Takeout export and migration checkpoint)
+abonnements.csv
+subscriptions.csv
+processed_channels.txt
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.python-version
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
