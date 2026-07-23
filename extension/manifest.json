@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Subscriptions Exporter",
+  "version": "1.0.0",
+  "description": "Export your YouTube subscriptions to a Takeout-compatible CSV, ready for youtube-subscriptions-transfer. Read-only, your own data.",
+  "permissions": ["scripting", "downloads", "activeTab", "tabs"],
+  "host_permissions": ["https://www.youtube.com/*"],
+  "action": {
+    "default_title": "Export YouTube subscriptions",
+    "default_popup": "popup.html"
+  }
+}

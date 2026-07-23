@@ -33,6 +33,15 @@ it the next day. It picks up automatically thanks to the checkpoint.
 
 ### 1. Export subscriptions from the SOURCE account
 
+You have two options.
+
+**Option A: browser extension (no Takeout wait).** Install the bundled
+[`extension/`](extension/README.md) (Chrome/Chromium, unpacked), log in with the
+source account, and click *Export my subscriptions*. It downloads a ready-to-use
+`subscriptions.csv`. Read-only, no quota, no Google Cloud setup for this step.
+
+**Option B: Google Takeout (manual).**
+
 1. Go to [Google Takeout](https://takeout.google.com/).
 2. Deselect everything, then select **YouTube and YouTube Music**.
 3. In "All YouTube data included", keep only **subscriptions**.

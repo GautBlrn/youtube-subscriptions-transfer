@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 320px;
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        font-size: 13px;
+        color: #0f0f0f;
+        background: #fff;
+      }
+      .wrap { padding: 16px; }
+      h1 { font-size: 15px; margin: 0 0 4px; }
+      p.sub { margin: 0 0 14px; color: #606060; line-height: 1.4; }
+      button {
+        width: 100%;
+        padding: 10px;
+        border: 0;
+        border-radius: 8px;
+        background: #065fd4;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:disabled { background: #aac6ef; cursor: default; }
+      #status { margin-top: 12px; min-height: 18px; line-height: 1.4; }
+      .muted { color: #606060; }
+      .err { color: #c00; }
+      .ok { color: #087443; font-weight: 600; }
+      code { background: #f2f2f2; padding: 1px 4px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Export subscriptions</h1>
+      <p class="sub">
+        Log in with the account whose subscriptions you want to export, then click
+        below. A <code>subscriptions.csv</code> is downloaded, ready for the
+        transfer script.
+      </p>
+      <button id="run">Export my subscriptions</button>
+      <div id="status" class="muted"></div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
